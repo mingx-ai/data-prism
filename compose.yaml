@@ -1,0 +1,28 @@
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      SOURCE_KEY: ${SOURCE_KEY:?Run scripts/configure.mjs first}
+      JDBC_GATEWAY_TOKEN: ${JDBC_GATEWAY_TOKEN:?Run scripts/configure.mjs first}
+      JDBC_GATEWAY_URL: http://runner:8081
+      JDBC_ALLOW_INTERNAL_HTTP: "true"
+      PRISM_ADMIN_USER: ${PRISM_ADMIN_USER:-admin}
+      PRISM_ADMIN_PASSWORD: ${PRISM_ADMIN_PASSWORD:?Set an admin password in .env}
+    volumes:
+      - web-data:/data
+    depends_on:
+      - runner
+  runner:
+    build: ./jdbc-runner
+    restart: unless-stopped
+    environment:
+      JDBC_GATEWAY_TOKEN: ${JDBC_GATEWAY_TOKEN:?Run scripts/configure.mjs first}
+    volumes:
+      - runner-data:/data
+      - ./jdbc-runner/drivers:/drivers:ro
+volumes:
+  web-data:
+  runner-data:
